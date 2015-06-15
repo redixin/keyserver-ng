@@ -54,6 +54,7 @@ Implemented
 Not implemented yet
 -------------------
 
-* ConfigParser
-* Send email by local mailer
 * Search key
+* Update key
+* Sendmail mailer
+* Dump DB/Load DB

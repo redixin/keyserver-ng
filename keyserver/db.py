@@ -26,9 +26,9 @@ def _step_one_dir_in(path):
     return os.path.join(path, l[0])
 
 
-class File:
+class DB:
 
-    def __init__(self, path):
+    def __init__(self, path, **kwargs):
         self.path = path
         self._makedirs("req")
 
@@ -94,6 +94,7 @@ class File:
         secret = ''.join(random.sample(string.ascii_letters, 16))
         with open(self._req_path(secret), "wb") as fp:
             key.export(fp)
+        return secret
 
     def confirm(self, secret):
         self.cleanup_expired_requests()

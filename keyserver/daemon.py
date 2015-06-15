@@ -1,4 +1,6 @@
 import asyncio
+import configparser
+import importlib
 import logging
 import logging.config
 
@@ -21,7 +23,7 @@ LOGGING = {
             "formatter": "standard",
             "class": "logging.StreamHandler",
         },
-        "rotate_file": {
+        "file": {
             "level": "DEBUG",
             "formatter": "standard",
             "class": "logging.handlers.RotatingFileHandler",
@@ -33,31 +35,44 @@ LOGGING = {
     },
     "loggers": {
         "": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "DEBUG",
         },
         "asyncio": {
-            "level": "WARNING",
-        },
-        "websockets": {
-            "level": "WARNING",
-        },
-        "paramiko": {
-            "level": "WARNING",
-        },
-        "rallyci.virsh": {
-            "level": "DEBUG",
-        },
+             "level": "WARNING",
+        }
     }
 }
 
-logging.config.dictConfig(LOGGING)
-
 
 def run():
+    import sys
+    if len(sys.argv) < 2:
+        filename = "/etc/keyserver-ng/config.ini"
+    else:
+        filename = sys.argv[1]
+    config = configparser.ConfigParser()
+    config.read(filename)
+    log_cfg = config["logging"]
+    LOGGING["handlers"]["file"]["level"] = log_cfg["level"]
+    LOGGING["handlers"]["file"]["filename"] = log_cfg["file"]
+    LOGGING["handlers"]["file"]["maxBytes"] = int(log_cfg["rotate_bytes"])
+    LOGGING["handlers"]["console"]["level"] = log_cfg["console_level"]
+    if not config.getboolean("logging", "log_console"):
+        LOGGING["loggers"][""]["handlers"] = ["file"]
+
+    logging.config.dictConfig(LOGGING)
+
+    db_module = importlib.import_module(config["database"]["module"])
+    db = db_module.DB(**config["database"])
+    server = hkp.Server(db)
     loop = asyncio.get_event_loop()
-    server = hkp.Server()
-    loop.run_until_complete(server.start(loop, host="0.0.0.0", port=8080))
+    loop.run_until_complete(
+            server.start(loop,
+                         host=config["keyserver"]["listen_addr"],
+                         port=config["keyserver"]["listen_port"],
+                         )
+    )
     loop.run_forever()
 
 

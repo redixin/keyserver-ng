@@ -5,15 +5,14 @@ from urllib import parse
 from aiohttp import web
 
 from keyserver.key import PublicKey, PrivateKey
-from keyserver.db import File
 
 LOG = logging.getLogger(__name__)
 
 
 class Server:
-
-    def __init__(self):
-        self.db = File("/tmp/t")
+    def __init__(self, db):
+        self.db = db
+        # self.mailer = mailer
 
     @asyncio.coroutine
     def root(self, request):
@@ -30,8 +29,8 @@ class Server:
         # * duplicate request
         # * already imported keys
         # * expired keys
-        self.db.add_request(key)
-        ciphertext = key.encrypt("wat")
+        secret = self.db.add_request(key)
+        # self.mailer.send_request(key, secret)
         return web.Response(text="Check email")
 
     @asyncio.coroutine
@@ -56,7 +55,6 @@ class Server:
             for keyid in qs["search"]:
                 key = self.db.get_key_by_id(keyid)
                 return web.Response(body=key.key)
-
 
     @asyncio.coroutine
     def start(self, loop, host="127.0.0.1", port=80):
