@@ -47,6 +47,13 @@ class PublicKey:
             return datetime.fromtimestamp(expire)
 
     @property
+    def details(self):
+        details = []
+        for uid in self._key.uids:
+            details += filter(bool, [uid.name, uid.comment, uid.email])
+        return details
+
+    @property
     def ids(self):
         return [sk.keyid for sk in self._key.subkeys]
 

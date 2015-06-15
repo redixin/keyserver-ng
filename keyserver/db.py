@@ -1,4 +1,7 @@
 import os
+import re
+import contextlib
+import dbm.gnu
 import random
 import datetime
 import string
@@ -7,6 +10,7 @@ import logging
 from keyserver.key import PublicKey
 
 LOG = logging.getLogger(__name__)
+SPLIT_RE = re.compile(r"\W+")
 
 
 class NotFound(Exception):
@@ -31,6 +35,14 @@ class DB:
     def __init__(self, path, **kwargs):
         self.path = path
         self._makedirs("req")
+
+    @contextlib.contextmanager
+    def _db(self, mode="cf"):
+        db = gdbm.gnu.open(self._path("index.gdbm", mode))
+        try:
+            yield db
+        finally:
+            db.close()
 
     def _makedirs(self, *path):
         """Create directory tree relative by self.path."""
@@ -81,6 +93,13 @@ class DB:
             raise ValueError("Invalid len of key ID (%d)" % len(i))
         return path
 
+    def _update_index(self, key):
+        data = " ".join(key.details)
+        with self._db as db:
+            for word in set(SPLIT_RE.split(data)):
+                db.setdefault(word, "")
+                db[word] = ",".join(filter(bool, db[word], key.fpr[-8:]))
+
     def get_key_by_id(self, keyid):
         keyid = hex(int(keyid, 16))[2:].lower()
         path = self._get_key_path_by_id(keyid)
@@ -101,6 +120,7 @@ class DB:
         src = self._req_path(secret)
         with open(src, "rb") as fp:
             key = PublicKey(fp)
+        self._update_index(key)
         fpr = key.fpr
         filename = self._get_key_filename(fpr)
         self._makedirs(filename.rsplit('/', 1)[0])
@@ -133,3 +153,15 @@ class DB:
         for year in os.listdir(self._path("expire")):
             if self.today.year >= year:
                 self._expire_year(year)
+
+    def search(self, string):
+        words = SPLIT_RE.split(string)
+        if not words:
+            return []
+        with self._db(mode="r") as db:
+            keyids = set(db[words[0]))
+            for word in words[1:]:
+                keyids = match & db[word]
+        for keyid in keyids:
+            for key in self.get_key_by_id(key):
+                yield key

@@ -87,3 +87,4 @@ class KeyTestCase(unittest.TestCase):
         self.assertEqual("test@example.net", key.email)
         self.assertEqual("<PublicKey: Testing <test@example.net>>: "
                          "A1FB2F8540F8E694BF48D8AC0C82022477FAF537", repr(key))
+        self.assertEqual(['Testing', 'test@example.net'], key.details)

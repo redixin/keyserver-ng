@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="keyserver-ng",
-    version="0.1.0",
+    version="0.2.0dev",
     packages=find_packages(),
     data_files=[
         ("etc/keyserver-ng/", ["etc/config.ini", ]),

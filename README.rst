@@ -42,19 +42,30 @@ Run in foreground::
 
     $ sudo keyserver-ng /etc/keyserver-ng/config.ini
 
-Current status
-==============
+Changelog
+=========
 
-Implemented
------------
+Version 0.1.0
+-------------
+New features:
 
 * Upload key/Confirm key
 * Fetch key
 
-Not implemented yet
--------------------
+Roadmap
+=======
 
+Version 0.2.0
+-------------
 * Search key
 * Update key
 * Sendmail mailer
+
+Version 0.3.0
+-------------
+* MySQL backend
 * Dump DB/Load DB
+
+Version 0.4.0
+-------------
+* Server pools
