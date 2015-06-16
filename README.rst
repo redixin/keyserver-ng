@@ -63,8 +63,9 @@ Version 0.2.0
 
 Version 0.3.0
 -------------
-* MySQL backend
+* Startup scripts (upstart/init/systemd)
 * Dump DB/Load DB
+* MySQL backend
 
 Version 0.4.0
 -------------

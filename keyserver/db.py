@@ -38,7 +38,7 @@ class DB:
 
     @contextlib.contextmanager
     def _db(self, mode="cf"):
-        db = gdbm.gnu.open(self._path("index.gdbm", mode))
+        db = dbm.gnu.open(self._path("index.gdbm", mode))
         try:
             yield db
         finally:
@@ -159,9 +159,9 @@ class DB:
         if not words:
             return []
         with self._db(mode="r") as db:
-            keyids = set(db[words[0]))
+            keyids = set(db[words[0]])
             for word in words[1:]:
-                keyids = match & db[word]
+                keyids = keyids & db[word]
         for keyid in keyids:
-            for key in self.get_key_by_id(key):
+            for key in self.get_key_by_id(keyid):
                 yield key

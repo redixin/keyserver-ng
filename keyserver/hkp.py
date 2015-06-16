@@ -23,7 +23,12 @@ class Server:
         LOG.debug(request)
         LOG.debug(request.content_type)
         keytext = yield from request.post()
-        key = PublicKey(keytext["keytext"])
+        key = keytext.get("keytext")
+        if not key:
+            LOG.warning("Bad request %s from %s" % (request, request.host))
+            # TODO: log whole bad requests
+            return web.Response(status=400)
+        key = PublicKey(key)
         LOG.info("Import request %r" % key)
         # TODO: check for:
         # * duplicate request
@@ -64,4 +69,5 @@ class Server:
         app.router.add_route("GET", "/pks/lookup", self.lookup)
         app.router.add_route("POST", "/pks/add", self.add)
         srv = yield from loop.create_server(app.make_handler(), host, port)
+        LOG.info("Server created")
         return srv
